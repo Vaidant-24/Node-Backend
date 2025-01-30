@@ -11,11 +11,15 @@ const asycnHandler = (func) => async (req, res, next) => {
 
 // OR
 
-const asycnHandlerFun = (func) => async (req, res, next) => {
-  Promise.then(func(req, res, next)).catch((err) => {
-    res.status(400).json({
-      status: "failed",
-      msg: err,
+const asycnHandlerFun = (func) => {
+  return async (req, res, next) => {
+    Promise.resolve(func(req, res, next)).catch((err) => {
+      res.status(400).json({
+        status: "failed",
+        msg: err,
+      });
     });
-  });
+  };
 };
+
+export { asycnHandler };

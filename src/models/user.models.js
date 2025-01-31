@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken"; // Import jwt
 
 const userSchema = new Schema(
   {
@@ -38,8 +39,8 @@ const userSchema = new Schema(
       },
     ],
     password: {
-      required: true,
       type: String,
+      required: [true, "Password is required"],
     },
     refreshToken: {
       type: String,
@@ -48,16 +49,19 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+// Middleware to hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcryptjs.hash(this.password, 10);
   next();
 });
 
+// Method to check if entered password is correct
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcryptjs.compare(password, this.password);
 };
 
+// Method to generate access token
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -73,6 +77,7 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
+// Method to generate refresh token
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
@@ -84,4 +89,5 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
+
 export const User = mongoose.model("User", userSchema);

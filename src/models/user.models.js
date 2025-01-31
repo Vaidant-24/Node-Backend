@@ -51,14 +51,15 @@ const userSchema = new Schema(
 
 // Middleware to hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcryptjs.hash(this.password, 10);
+  // use this middleware before saving.
+  if (!this.isModified("password")) return next(); // if password is not modified then no need to hashed.
+  this.password = await bcryptjs.hash(this.password, 10); // password is modified, needs to be hashed.
   next();
 });
 
 // Method to check if entered password is correct
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcryptjs.compare(password, this.password);
+  return await bcryptjs.compare(password, this.password); // here "password" is req.body password (entered by user) and this.password is the password stored in database after user was registered.
 };
 
 // Method to generate access token

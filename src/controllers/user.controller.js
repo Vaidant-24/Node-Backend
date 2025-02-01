@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import { upload } from "../middlewares/multer.middleware.js";
 
 // Generate Access and Refresh Token-
 const generateAccessAndRefreshToken = async (userId) => {
@@ -102,7 +103,6 @@ const loginUser = asyncHandler(async (req, res) => {
   // response
 
   const { username, email, password } = req.body;
-  console.log(username, email, password);
   if (!username && !email) {
     throw new ApiError(400, "Username and Email is Required!");
   }
@@ -273,6 +273,27 @@ const updateUserDetail = asyncHandler(async (req, res) => {
     );
 });
 
+const updateFile = asyncHandler(async (req, res) => {
+  const localFilePath = req.files?.avatar[0].path;
+  if (!localFilePath) {
+    throw new ApiError(401, "Local path not found!");
+  }
+  const avatar = await uploadOnCloudinary(localFilePath);
+  if (!avatar) {
+    throw new ApiError(401, "File not uploaded!");
+  }
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: { avatar: avatar.url },
+    },
+    { new: true }
+  ).select("-password");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "File updated successfully!"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -281,4 +302,5 @@ export {
   changePassword,
   getCurrentUser,
   updateUserDetail,
+  updateFile,
 };

@@ -7,6 +7,7 @@ import {
   changePassword,
   getCurrentUser,
   updateUserDetail,
+  updateFile,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -38,5 +39,16 @@ router.route("/change-password").post(verifyJWT, changePassword);
 router.route("/get-user").get(verifyJWT, getCurrentUser);
 
 router.route("/update-user").post(verifyJWT, updateUserDetail);
+
+router.route("/update-user-file").post(
+  verifyJWT,
+  upload.fields([
+    {
+      name: "avatar",
+      maxCount: 1,
+    },
+  ]),
+  updateFile
+);
 
 export default router;

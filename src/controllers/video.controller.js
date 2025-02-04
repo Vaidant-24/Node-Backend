@@ -4,8 +4,33 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
-import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
+
+const getAllVideos = asyncHandler(async (req, res) => {
+  console.log(req.user._id.toString());
+  const id = req.user._id.toString();
+  if (!req.user) {
+    throw new ApiError(400, "User is not authenticated!");
+  }
+  const options = {
+    page: 1,
+    limit: 10,
+  };
+
+  const myAggregate = await Video.aggregate([
+    {
+      $match: {
+        owner: id,
+      },
+    },
+  ]);
+  const video = await Video.aggregatePaginate(myAggregate, options);
+  if (!video) {
+    throw new ApiError(400, "Video not fetched!");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { video: video.docs }, "Videos"));
+});
 
 const postVideo = asyncHandler(async (req, res) => {
   if (!req.user) {
@@ -116,4 +141,45 @@ const deleteVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { video }, "Video deleted successfully!"));
 });
 
-export { postVideo, deleteVideo };
+const getVideoById = asyncHandler(async (req, res) => {
+  if (!req.user._id) {
+    throw new ApiError(400, "User is not authenticated!");
+  }
+  const { videoId } = req.params;
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(400, "Video not found!");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { video }, "Video fetched successfully!"));
+});
+
+const updateVideoById = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(400, "User is not authenticated!");
+  }
+  const { videoId } = req.params;
+  const { title, description } = req.body;
+  const video = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      $set: {
+        title,
+        description,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { video }, "Video updated successfully!"));
+});
+
+export { postVideo, deleteVideo, getVideoById, updateVideoById, getAllVideos };

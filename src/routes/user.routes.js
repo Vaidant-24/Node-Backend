@@ -38,13 +38,13 @@ router.route("/logout").post(verifyJWT, logoutUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
 
-router.route("/change-password").post(verifyJWT, changePassword);
+router.route("/change-password").patch(verifyJWT, changePassword);
 
 router.route("/get-user").get(verifyJWT, getCurrentUser);
 
-router.route("/update-user").post(verifyJWT, updateUserDetail);
+router.route("/update-user").patch(verifyJWT, updateUserDetail);
 
-router.route("/update-user-avatar").post(
+router.route("/update-user-avatar").patch(
   verifyJWT,
   upload.fields([
     {
@@ -55,7 +55,7 @@ router.route("/update-user-avatar").post(
   updateAvatarFile
 );
 
-router.route("/update-user-coverImg").post(
+router.route("/update-user-coverImg").patch(
   verifyJWT,
   upload.fields([
     {

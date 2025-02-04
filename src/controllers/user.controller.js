@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
-import { upload } from "../middlewares/multer.middleware.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 // Generate Access and Refresh Token-
 const generateAccessAndRefreshToken = async (userId) => {
@@ -72,6 +72,8 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar file not uploaded!");
   }
   const user = await User.create({
+    avatarPublicId: avatar.public_id,
+    coverImgPublicId: coverImg.public_id,
     fullname,
     avatar: avatar.url,
     coverImg: coverImg?.url || "",
@@ -328,7 +330,6 @@ const updateCoverImgFile = asyncHandler(async (req, res) => {
 // Get User Channel Profile-
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
-  console.log(username);
   if (!username) {
     throw new ApiError(400, "User not found!");
   }
@@ -437,6 +438,37 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Watch history fetched successfully"));
 });
 
+const deleteUser = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  if (!userId) {
+    throw new ApiError(400, "User not authenticated!");
+  }
+  const user = await User.findById(userId);
+
+  const avatarPublicId = user.avatarPublicId;
+  const coverImgPublicId = user.coverImgPublicId;
+
+  // Deletion from cloudinary
+  const result = await cloudinary.api.delete_resources(
+    [avatarPublicId, coverImgPublicId],
+    {
+      resource_type: "image",
+    }
+  );
+  console.log(result);
+  if (!result) {
+    throw new ApiError(500, "Cloudinary deletion Error!");
+  }
+
+  // Deletion from MongoDB Database-
+
+  await User.findByIdAndDelete(userId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { id: userId }, "User deleted successfully!"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -449,4 +481,5 @@ export {
   updateCoverImgFile,
   getUserChannelProfile,
   getWatchHistory,
+  deleteUser,
 };

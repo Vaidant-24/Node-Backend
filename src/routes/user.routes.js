@@ -11,6 +11,7 @@ import {
   updateCoverImgFile,
   getUserChannelProfile,
   getWatchHistory,
+  deleteUser,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -70,5 +71,7 @@ router
   .get(verifyJWT, getUserChannelProfile);
 
 router.route("/get-user-watchHistory").get(verifyJWT, getWatchHistory);
+
+router.route("/delete-user").post(verifyJWT, deleteUser);
 
 export default router;

@@ -77,6 +77,32 @@ const updateTweet = asyncHandler(async (req, res) => {
 
 const deleteTweet = asyncHandler(async (req, res) => {
   //TODO: delete tweet
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
+
+  const { tweetId } = req.params;
+
+  const tweet = await Tweet.findById(tweetId);
+  //   console.log(`${req.user._id} | ${tweet.owner}`);
+  if (req.user._id.toString() !== tweet.owner.toString()) {
+    throw new ApiError(405, "User don't have access to delete this tweet!");
+  }
+  const delTweet = await Tweet.findByIdAndDelete(tweetId);
+
+  if (!delTweet) {
+    throw new ApiError(405, "Error while deleting tweet..!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiError(
+        200,
+        { deletedTweet: delTweet },
+        "Tweet deleted successfully!"
+      )
+    );
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };

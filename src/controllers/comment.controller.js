@@ -64,4 +64,31 @@ const updateComment = asyncHandler(async (req, res) => {
     );
 });
 
-export { postComment, updateComment };
+const deleteComment = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
+  const { commentId } = req.params;
+  const comment = await Comment.findById(commentId);
+  // console.log(` userId: ${req.user._id}\n ownerId: ${comment.owner}`);
+
+  if (comment.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(405, "User don't have access to delete this comment!");
+  }
+  const delComment = await Comment.findByIdAndDelete(commentId);
+  if (!delComment) {
+    throw new ApiError(405, "Error while deleting comment..!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { deletedComment: delComment },
+        "Comment deleted successfully!"
+      )
+    );
+});
+
+export { postComment, updateComment, deleteComment };

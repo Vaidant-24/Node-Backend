@@ -51,8 +51,15 @@ const updateTweet = asyncHandler(async (req, res) => {
   if (!req.user) {
     throw new ApiError(405, "User is not authenticated!");
   }
+
   const { tweetId } = req.params;
   const { content } = req.body;
+
+  const tweet = await Tweet.findById(tweetId);
+  //   console.log(`${req.user._id} | ${tweet.owner}`);
+  if (req.user._id.toString() !== tweet.owner.toString()) {
+    throw new ApiError(405, "User don't have access to update this tweet!");
+  }
   const updateTweet = await Tweet.findByIdAndUpdate(tweetId, {
     $set: {
       content,

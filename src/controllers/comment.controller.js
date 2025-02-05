@@ -2,7 +2,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.models.js";
-import mongoose from "mongoose";
 
 const postComment = asyncHandler(async (req, res) => {
   if (!req.user) {
@@ -92,49 +91,4 @@ const deleteComment = asyncHandler(async (req, res) => {
     );
 });
 
-const getAllCommentsForVideo = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new ApiError(405, "User is not authenticated!");
-  }
-  const { videoId } = req.params;
-  // console.log(videoId);
-  const videos = await Comment.aggregate([
-    {
-      $lookup: {
-        from: "videos",
-        localField: "video",
-        foreignField: "_id",
-        as: "videos",
-      },
-    },
-    {
-      $addFields: {
-        videos: {
-          $first: "$videos",
-        },
-      },
-    },
-    {
-      $match: {
-        "videos._id": new mongoose.Types.ObjectId(videoId),
-      },
-    },
-    {
-      $project: {
-        content: 1,
-        owner: 1,
-        video: 1,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    },
-  ]);
-  if (!videos) {
-    throw new ApiError(405, "Error while fetching videos..!");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { videos }, "Video fetched successfully!"));
-});
-
-export { postComment, updateComment, deleteComment, getAllCommentsForVideo };
+export { postComment, updateComment, deleteComment };

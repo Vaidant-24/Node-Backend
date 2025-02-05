@@ -102,19 +102,78 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 });
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
-  const { playlistId, videoId } = req.params;
   // TODO: remove video from playlist
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
+  const { playlistId, videoId } = req.params;
+
+  const playlist = await Playlist.findById(playlistId);
+  //   console.log(`${playlist.owner} | ${req.user._id}`);
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(405, "Access denied!");
+  }
 });
 
 const deletePlaylist = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
   const { playlistId } = req.params;
   // TODO: delete playlist
+  const playlist = await Playlist.findById(playlistId);
+  //   console.log(`${playlist.owner} | ${req.user._id}`);
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(405, "Access denied!");
+  }
+  const delPlaylist = await Playlist.findByIdAndDelete(playlistId);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { deletedPlaylist: delPlaylist },
+        "Playlist deleted successfully!!"
+      )
+    );
 });
 
 const updatePlaylist = asyncHandler(async (req, res) => {
-  const { playlistId } = req.params;
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
   const { name, description } = req.body;
+  const { playlistId } = req.params;
+
+  const playlist = await Playlist.findById(playlistId);
+  //   console.log(`${playlist.owner} | ${req.user._id}`);
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(405, "Access denied!");
+  }
   //TODO: update playlist
+
+  const updatePlaylist = await Playlist.findByIdAndUpdate(playlistId, {
+    $set: {
+      name,
+      description,
+    },
+  });
+
+  if (!updatePlaylist || updatePlaylist.length === 0) {
+    throw new ApiError(405, "Error while updating playlist..!");
+  }
+
+  const finalPlaylist = await Playlist.findById(playlistId);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { updatedPlaylist: finalPlaylist },
+        "Playlist updated successfully!"
+      )
+    );
 });
 
 export {

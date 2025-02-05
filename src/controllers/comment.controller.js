@@ -98,7 +98,7 @@ const getAllCommentsForVideo = asyncHandler(async (req, res) => {
   }
   const { videoId } = req.params;
   // console.log(videoId);
-  const videos = await Comment.aggregate([
+  const comments = await Comment.aggregate([
     {
       $lookup: {
         from: "videos",
@@ -129,12 +129,12 @@ const getAllCommentsForVideo = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  if (!videos) {
+  if (!comments) {
     throw new ApiError(405, "Error while fetching videos..!");
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, { videos }, "Video fetched successfully!"));
+    .json(new ApiResponse(200, { comments }, "Video fetched successfully!"));
 });
 
 export { postComment, updateComment, deleteComment, getAllCommentsForVideo };

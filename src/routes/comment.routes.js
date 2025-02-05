@@ -4,6 +4,6 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/post-comment").post(verifyJWT, postComment);
+router.route("/post-comment/:videoId").post(verifyJWT, postComment);
 
 export default router;

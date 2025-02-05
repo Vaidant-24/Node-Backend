@@ -9,10 +9,12 @@ const postComment = asyncHandler(async (req, res) => {
   }
   const ownerId = req.user._id;
   const { content } = req.body;
+  const { videoId } = req.params;
 
   const createComment = await Comment.create({
     content,
     owner: ownerId,
+    video: videoId,
   });
 
   if (!createComment) {

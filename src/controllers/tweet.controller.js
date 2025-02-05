@@ -48,6 +48,24 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
 const updateTweet = asyncHandler(async (req, res) => {
   //TODO: update tweet
+  if (!req.user) {
+    throw new ApiError(405, "User is not authenticated!");
+  }
+  const { tweetId } = req.params;
+  const { content } = req.body;
+  const updateTweet = await Tweet.findByIdAndUpdate(tweetId, {
+    $set: {
+      content,
+    },
+  });
+
+  if (!updateTweet) {
+    throw new ApiError(405, "Error while updating..!");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { updateTweet }, "Tweet updated successfully!"));
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {

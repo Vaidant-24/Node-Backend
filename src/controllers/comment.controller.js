@@ -28,4 +28,40 @@ const postComment = asyncHandler(async (req, res) => {
     );
 });
 
-export { postComment };
+const updateComment = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(405, "User not authenticated!");
+  }
+
+  const { commentId } = req.params;
+  const { content } = req.body;
+
+  const comment = await Comment.findById(commentId);
+
+  // console.log(` userId: ${req.user._id}\n ownerId: ${comment.owner}`);
+  if (req.user._id.toString() !== comment.owner.toString()) {
+    throw new ApiError(405, "User don't have access to update this comment!");
+  }
+
+  const updateComment = await Comment.findByIdAndUpdate(commentId, {
+    $set: {
+      content: content,
+    },
+  });
+
+  if (!updateComment) {
+    throw new ApiError(405, "Error while updating comment..!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { prevComment: updateComment },
+        "Comment updated successfully!"
+      )
+    );
+});
+
+export { postComment, updateComment };

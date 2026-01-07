@@ -1,0 +1,29 @@
+name: Simple CI Stages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------- BUILD ----------------
+      - name: Build
+        run: |
+          echo "===== BUILD STAGE ====="
+          echo "Running build steps..."
+
+      # ---------------- DEPLOY ----------------
+      - name: Deploy
+        run: |
+          echo "===== DEPLOY STAGE ====="
+          echo "Running deploy steps..."
+
+      # ---------------- CLEANUP ----------------
+      - name: Cleanup
+        run: |
+          echo "===== CLEANUP STAGE ====="
+          echo "Running cleanup steps..."
